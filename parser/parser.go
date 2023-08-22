@@ -7,10 +7,13 @@ import (
 )
 
 func Parse(line string, context string, category string, parsed_tokens *[][]string) error {
-	if context == "MULTILINE_COMMENT" {
-		return nil
-	}
+  if category == "NEXT"{
+    return nil
+  }
 	if category == "DELIMITER_START" {
+    if context == "" {
+      return errors.New("Parsing error")
+    }
     result := strings.Split(strings.TrimSpace(purifier.Purify(line, category)), " ")
     if len(result)>1 {
       return errors.New("Parsing error")

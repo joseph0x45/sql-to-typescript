@@ -26,21 +26,68 @@ func main() {
 	defer reader.Close()
 	scanner := bufio.NewScanner(reader)
 	var parsed_tokens [][]string
-	var context string
+	context := ""
+	previous_context := ""
 	line_number := 0
 	for scanner.Scan() {
+		line_number += 1
 		line := strings.ToLower(scanner.Text())
 		line_category := categorizer.Categorize(strings.TrimSpace(line))
+		if line_category == "MULTILINE_COMMENT_START" {
+			previous_context = context
+			context = "MULTILINE_COMMENT"
+			continue
+		}
+		if line_category == "MULTILINE_COMMENT_END" {
+			if context != "MULTILINE_COMMENT" {
+				println("Invalid character error */")
+				return
+			}
+			context = previous_context
+		}
+		if line_category == "NEXT" {
+			context = ""
+		}
+		if line_category == "DELIMITER_START" {
+			if context == "PARSING" || context == "START_PARSING" {
+				println("Error parsing")
+				return
+			}
+			context = "START_PARSING"
+		}
+		if line_category == "FIELD" {
+			if context == "MULTILINE_COMMENT" {
+				continue
+			}
+			if context != "START_PARSING" && context != "PARSING" {
+				println("Error parsing")
+				return
+			}
+			if context == "START_PARSING" {
+				context = "PARSING"
+			}
+		}
+		if line_category == "DELIMITER_END" {
+			if context == "START_PARSING" {
+				println("Error can not parse empty table")
+				return
+			}
+			if context == "" {
+				println("Error parsing")
+				return
+			}
+		}
 		err := parser.Parse(line, context, line_category, &parsed_tokens)
 		if err != nil {
 			println(
 				"Parsing error at line ",
-				line_number+1,
+				line_number,
 				": ",
 				"`",
 				line,
 				"`",
 			)
+			return
 		}
 	}
 }
