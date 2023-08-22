@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 	"thewisepigeon/sql-to-ts/categorizer"
@@ -25,9 +26,10 @@ func main() {
 	}
 	defer reader.Close()
 	scanner := bufio.NewScanner(reader)
-	var parsed_tokens [][]string
+  parsed_tokens := [][]string{}
 	context := ""
 	previous_context := ""
+  current_type_index := -1
 	line_number := 0
 	for scanner.Scan() {
 		line_number += 1
@@ -54,6 +56,10 @@ func main() {
 				return
 			}
 			context = "START_PARSING"
+      current_type_index+=1
+      if current_type_index >= len(parsed_tokens){
+        parsed_tokens = append(parsed_tokens, []string{})
+      }
 		}
 		if line_category == "FIELD" {
 			if context == "MULTILINE_COMMENT" {
@@ -77,7 +83,7 @@ func main() {
 				return
 			}
 		}
-		err := parser.Parse(line, context, line_category, &parsed_tokens)
+		token, err := parser.Parse(line, context, line_category, parsed_tokens)
 		if err != nil {
 			println(
 				"Parsing error at line ",
@@ -89,5 +95,10 @@ func main() {
 			)
 			return
 		}
+    if token==""{
+      continue
+    }
+    parsed_tokens[current_type_index] = append(parsed_tokens[current_type_index], token)
+    fmt.Printf("%v\n", parsed_tokens)
 	}
 }

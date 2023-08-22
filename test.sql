@@ -1,8 +1,9 @@
 -- Simplest table ever
 /*
-yeah you know what Im saying
+some multi line comment
+should be ignored
 */
-create table User IF NOT EXISTS some (
+create table User IF NOT EXISTS (
   name text not null,
   age integer not null,
   other_names text[] not null,
