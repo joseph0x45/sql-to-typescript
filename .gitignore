@@ -21,3 +21,4 @@
 go.work
 # App binary
 sql-to-ts
+*.ts
