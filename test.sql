@@ -12,3 +12,8 @@ create table User IF NOT EXISTS (
   birthdate date not null,
   metadata json 
 );
+
+create table test (
+  name text not null,
+  age integer
+);

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"thewisepigeon/sql-to-ts/categorizer"
 	"thewisepigeon/sql-to-ts/parser"
+	"time"
 )
 
 func main() {
@@ -15,6 +16,16 @@ func main() {
 		return
 	}
 	sql_file_path := os.Args[1]
+  output_file_name := ""
+  if len(os.Args) == 3 {
+    output_file_name = os.Args[2]
+    if !strings.HasSuffix(output_file_name, ".ts"){
+      output_file_name = fmt.Sprintf("%s.ts", output_file_name)
+    }
+  }else {
+    output_file_name = fmt.Sprintf("%v.ts",time.Now().Unix())
+  }
+  println(output_file_name)
 	if !strings.HasSuffix(sql_file_path, ".sql") {
 		println("Only SQL files are supported")
 		return
@@ -99,6 +110,11 @@ func main() {
       continue
     }
     parsed_tokens[current_type_index] = append(parsed_tokens[current_type_index], token)
-    fmt.Printf("%v\n", parsed_tokens)
 	}
+  for _, parsed_token := range parsed_tokens{
+    for _, token := range parsed_token{
+      println(token)
+    }
+    println("")
+  }
 }
