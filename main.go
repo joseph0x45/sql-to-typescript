@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -16,16 +17,15 @@ func main() {
 		return
 	}
 	sql_file_path := os.Args[1]
-  output_file_name := ""
-  if len(os.Args) == 3 {
-    output_file_name = os.Args[2]
-    if !strings.HasSuffix(output_file_name, ".ts"){
-      output_file_name = fmt.Sprintf("%s.ts", output_file_name)
-    }
-  }else {
-    output_file_name = fmt.Sprintf("%v.ts",time.Now().Unix())
-  }
-  println(output_file_name)
+	output_file_name := ""
+	if len(os.Args) == 3 {
+		output_file_name = os.Args[2]
+		if !strings.HasSuffix(output_file_name, ".ts") {
+			output_file_name = fmt.Sprintf("%s.ts", output_file_name)
+		}
+	} else {
+		output_file_name = fmt.Sprintf("%v.ts", time.Now().Unix())
+	}
 	if !strings.HasSuffix(sql_file_path, ".sql") {
 		println("Only SQL files are supported")
 		return
@@ -37,10 +37,10 @@ func main() {
 	}
 	defer reader.Close()
 	scanner := bufio.NewScanner(reader)
-  parsed_tokens := [][]string{}
+	parsed_tokens := [][]string{}
 	context := ""
 	previous_context := ""
-  current_type_index := -1
+	current_type_index := -1
 	line_number := 0
 	for scanner.Scan() {
 		line_number += 1
@@ -67,10 +67,10 @@ func main() {
 				return
 			}
 			context = "START_PARSING"
-      current_type_index+=1
-      if current_type_index >= len(parsed_tokens){
-        parsed_tokens = append(parsed_tokens, []string{})
-      }
+			current_type_index += 1
+			if current_type_index >= len(parsed_tokens) {
+				parsed_tokens = append(parsed_tokens, []string{})
+			}
 		}
 		if line_category == "FIELD" {
 			if context == "MULTILINE_COMMENT" {
@@ -106,15 +106,26 @@ func main() {
 			)
 			return
 		}
-    if token==""{
-      continue
-    }
-    parsed_tokens[current_type_index] = append(parsed_tokens[current_type_index], token)
+		if token == "" {
+			continue
+		}
+		parsed_tokens[current_type_index] = append(parsed_tokens[current_type_index], token)
 	}
-  for _, parsed_token := range parsed_tokens{
-    for _, token := range parsed_token{
-      println(token)
-    }
-    println("")
+	var buffer bytes.Buffer
+	for _, parsed_token := range parsed_tokens {
+		for _, token := range parsed_token {
+			buffer.WriteString(token)
+			buffer.WriteString("\n")
+		}
+		buffer.WriteString("\n")
+	}
+  output_file, err := os.Create(output_file_name)
+  if err!= nil{
+    println("Error while creating output file")
+  }
+  defer output_file.Close()
+  _, err = output_file.WriteString(buffer.String())
+  if err!= nil{
+    println("Error while writing generated types")
   }
 }

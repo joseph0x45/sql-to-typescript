@@ -31,6 +31,8 @@ var types = map[string]string{
   "jsonb[]":"Record<string, unknown>[]",
 }
 
+var registered_types = []string{}
+
 func Parse(line string, context string, category string, parsed_tokens [][]string) (string, error) {
   if category == "NEXT"{
     return "", nil
@@ -41,6 +43,12 @@ func Parse(line string, context string, category string, parsed_tokens [][]strin
       return "", errors.New("Parsing error")
     }
     table_name := result[0]
+    for _, value := range registered_types{
+      if table_name==value{
+        return "", errors.New("Duplicate table name")
+      }
+    }
+    registered_types = append(registered_types, table_name)
     return fmt.Sprintf("type %s = { ", table_name), nil
 	}
   if category == "DELIMITER_END" {
